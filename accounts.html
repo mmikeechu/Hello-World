@@ -59,6 +59,11 @@
 		<!-- ace settings handler -->
 
 		<script src="assets/js/ace-extra.min.js"></script>
+		<!-- include the next line to use phonegap javascript functions -->
+    <script type="text/javascript" charset="utf-8" src="assets/js/cordova.js"></script>
+		<script type="text/javascript" charset="utf-8" src="assets/js/jquery-2.0.3.min.js">
+		</script>
+		
 
 		<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
 
@@ -66,9 +71,174 @@
 		<script src="assets/js/html5shiv.js"></script>
 		<script src="assets/js/respond.min.js"></script>
 		<![endif]-->
+		<!--DATABASE-->
+		 <script type="text/javascript" charset="utf-8">
+ 
+// global variables
+var db;
+var shortName = 'WebSqlDB';
+var version = '1.0';
+var displayName = 'WebSqlDB';
+var maxSize = 65535;
+ 
+// this is called when an error happens in a transaction
+function errorHandler(transaction, error) {
+   alert('Error: ' + error.message + ' code: ' + error.code);
+ 
+}
+ 
+// this is called when a successful transaction happens
+function successCallBack() {
+   alert("DEBUGGING: success");
+ 
+}
+ 
+function nullHandler(){};
+ 
+// called when the application loads
+function onBodyLoad(){
+ 
+// This alert is used to make sure the application is loaded correctly
+// you can comment this out once you have the application working
+alert("DEBUGGING: we are in the onBodyLoad() function");
+ 
+ if (!window.openDatabase) {
+   // not all mobile devices support databases  if it does not, the
+//following alert will display
+   // indicating the device will not be albe to run this application
+   alert('Databases are not supported in this browser.');
+   return;
+ }
+ 
+// this line tries to open the database base locally on the device
+// if it does not exist, it will create it and return a database
+//object stored in variable db
+ db = openDatabase(shortName, version, displayName,maxSize);
+ 
+// this line will try to create the table User in the database just
+//created/openned
+ db.transaction(function(tx){
+ 
+  // you can uncomment this next line if you want the User table to be
+//empty each time the application runs
+ //tx.executeSql( 'DROP TABLE User',nullHandler,nullHandler);
+ 
+  // this line actually creates the table User if it does not exist
+//and sets up the three columns and their types
+  // note the UserId column is an auto incrementing column which is
+//useful if you want to pull back distinct rows
+  // easily from the table.
+   tx.executeSql( 'CREATE TABLE IF NOT EXISTS User(UserId INTEGER NOT NULL PRIMARY KEY, MeterNum INTEGER NOT NULL, FirstName TEXT NOT NULL, LastName TEXT NOT NULL, Reading INTEGER NOT NULL, ReadDate DATE NOT NULL)',[],nullHandler,errorHandler);},errorHandler,successCallBack); 
+}
+ 
+// list the values in the database to the screen using jquery to
+//update the #lbUsers element
+function ListDBValues() {
+ 
+ if (!window.openDatabase) {
+  alert('Databases are not supported in this browser.');
+  return;
+ }
+ 
+// this line clears out any content in the #lbUsers element on the
+//page so that the next few lines will show updated
+// content and not just keep repeating lines
+ $('#lbUsers').html('');
+ 
+// this next section will select all the content from the User table
+//and then go through it row by row
+// appending the UserId  FirstName  LastName to the  #lbUsers element
+//on the page
+ db.transaction(function(transaction) {
+   transaction.executeSql('SELECT * FROM User;', [],
+     function(transaction, result) {
+      if (result != null && result.rows != null) {
+        for (var i = 0; i < result.rows.length; i++) {
+          var row = result.rows.item(i);
+          $('#lbUsers').append('<br>' + row.UserId + ' - ' +row.FirstName+ ' ' + row.LastName + ' - ' + row.MeterNum + ' - ' + row.Reading + ' kWh - ' + row.ReadDate);
+        }
+      }
+     },errorHandler);
+ },errorHandler,nullHandler);
+ 
+ return;
+ 
+}
+ 
+// this is the function that puts values into the database using the
+//values from the text boxes on the screen
+function AddValueToDB() {
+ 
+ if (!window.openDatabase) {
+   alert('Databases are not supported in this browser.');
+   return;
+ }
+  
+// this is the section that actually inserts the values into the User
+//table
+ db.transaction(function(transaction) {
+   transaction.executeSql('INSERT INTO User(FirstName, LastName, MeterNum, Reading, ReadDate)VALUES(?,?,?,?,?)',[$('#txFirstName').val(), $('#txLastName').val(), $('#txMeterNum').val(), $('#txReading').val(), $('#txReadDate').val()],nullHandler,errorHandler);
+   });
+ 
+// this calls the function that will show what is in the User table in
+//the database
+ ListDBValues();
+ 
+ return false;
+ 
+}
+
+// this is the function that deletes values into the database using the
+//values from the text boxes on the screen
+function DeleteFromDB() {
+ 
+ if (!window.openDatabase) {
+   alert('Databases are not supported in this browser.');
+   return;
+ }
+  
+// this is the section that actually inserts the values into the User
+//table
+ db.transaction(function(transaction) {
+   transaction.executeSql('DELETE FROM User WHERE FirstName=?',[$('#txFirstName').val()],nullHandler,errorHandler);
+   });
+ 
+// this calls the function that will show what is in the User table in
+//the database
+ ListDBValues();
+ 
+ return false;
+ 
+}
+
+// this is the function that deletes values into the database using the
+//values from the text boxes on the screen
+function UpdateFromDB() {
+ 
+ if (!window.openDatabase) {
+   alert('Databases are not supported in this browser.');
+   return;
+ }
+  
+// this is the section that actually inserts the values into the User
+//table
+ db.transaction(function(transaction) { 
+   transaction.executeSql('UPDATE User SET Reading=?, ReadDate=? WHERE MeterNum=?',[$('#txReading').val(), $('#txReadDate').val(), $('#txMeterNum').val()],nullHandler,errorHandler);
+   });
+ 
+// this calls the function that will show what is in the User table in
+//the database
+ ListDBValues();
+ 
+ return false;
+ 
+}
+
+ 
+</script>
 	</head>
 
-	<body>
+	<body onload="onBodyLoad()">
 		<div class="navbar navbar-default" id="navbar">
 			<script type="text/javascript">
 				try{ace.settings.check('navbar' , 'fixed')}catch(e){}
@@ -85,79 +255,7 @@
 				</div><!-- /.navbar-header -->
 
 				<div class="navbar-header pull-right" role="navigation">
-					<ul class="nav ace-nav">						
-
-						<li class="green">
-							<a data-toggle="dropdown" class="dropdown-toggle" href="#">
-								<i class="icon-envelope icon-animated-vertical"></i>
-								<span class="badge badge-success">5</span>
-							</a>
-
-							<ul class="pull-right dropdown-navbar dropdown-menu dropdown-caret dropdown-close">
-								<li class="dropdown-header">
-									<i class="icon-envelope-alt"></i>
-									5 Messages
-								</li>
-
-								<li>
-									<a href="#">
-										<img src="assets/avatars/avatar.png" class="msg-photo" alt="Alex's Avatar" />
-										<span class="msg-body">
-											<span class="msg-title">
-												<span class="blue">Alex:</span>
-												Ciao sociis natoque penatibus et auctor ...
-											</span>
-
-											<span class="msg-time">
-												<i class="icon-time"></i>
-												<span>a moment ago</span>
-											</span>
-										</span>
-									</a>
-								</li>
-
-								<li>
-									<a href="#">
-										<img src="assets/avatars/avatar3.png" class="msg-photo" alt="Susan's Avatar" />
-										<span class="msg-body">
-											<span class="msg-title">
-												<span class="blue">Susan:</span>
-												Vestibulum id ligula porta felis euismod ...
-											</span>
-
-											<span class="msg-time">
-												<i class="icon-time"></i>
-												<span>20 minutes ago</span>
-											</span>
-										</span>
-									</a>
-								</li>
-
-								<li>
-									<a href="#">
-										<img src="assets/avatars/avatar4.png" class="msg-photo" alt="Bob's Avatar" />
-										<span class="msg-body">
-											<span class="msg-title">
-												<span class="blue">Bob:</span>
-												Nullam quis risus eget urna mollis ornare ...
-											</span>
-
-											<span class="msg-time">
-												<i class="icon-time"></i>
-												<span>3:15 pm</span>
-											</span>
-										</span>
-									</a>
-								</li>
-
-								<li>
-									<a href="index.html">
-										See all messages
-										<i class="icon-arrow-right"></i>
-									</a>
-								</li>
-							</ul>
-						</li>
+					<ul class="nav ace-nav">	
 
 						<li class="light-blue">
 							<a data-toggle="dropdown" href="#" class="dropdown-toggle">
@@ -254,12 +352,6 @@
 							</a>
 						</li>
                         
-                        <li>
-							<a href="pricing.html">
-								<i class="icon-barcode"></i>
-								<span class="menu-text"> Pricing </span>
-							</a>
-						</li>
 							
 					</ul><!-- /.nav-list -->
 
@@ -329,7 +421,7 @@
                                                                                                     
                                                                                                     <a data-toggle="tab" href="#table">
 														<i class="icon-user"></i>
-														Account list
+														Account List
 													</a>
 													
 												</li>
@@ -338,14 +430,14 @@
                                                                                                 <li>
                                                                                                 
                                                                                                 <a data-toggle="tab" href="#list">
-														<i class="icon-user"></i>
-														Accounts
+														<i class="icon-barcode"></i>
+														Meter Reading
 													</a>
                                                                                                     </li>
 
 												<li>
-													<a data-toggle="tab" href="#accounts">
-														Billing
+													<a data-toggle="tab" href="#search">
+														<i class="icon-book"></i>Search
 													</a>
 												</li>
 
@@ -353,174 +445,86 @@
 
 											<div class="tab-content">
 											<div id="table" class="tab-pane in active">
-													List of Accounts
+													<h1>Accounts</h1><br>
+													<a href="#" class="btn btn-app btn-success btn-xs" value="Refresh" type="button" onClick="ListDBValues()">
+												<i class="icon-refresh bigger-230"></i>
+												Reload
+											</a><br><br>
+<span style="font-weight:bold;">Current Accounts:</span>
+<p>UserID - Customer Name - Meter Number - Reading (KwH) - Reading Date</p>
+<span id="lbUsers"></span>
                                                                                                     
 												</div>
 											
 												<div id="list" class="tab-pane">
-													<div class="form-group">
-										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Account No. </label>
 
-										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
-										</div>
-									</div>
-                                                                    
-                                                                    <div class="form-group">
-										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Account Name </label>
-
-										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
-										</div>
-									</div>
-                                                                    
-                                                                    <div class="form-group">
-										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Address </label>
-
-										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
-										</div>
-									</div>
-                                                                    
-                                                                    <div class="form-group">
-										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Service Type </label>
-
-										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
-										</div>
-									</div>
-                                                                    
-                                                                    <div class="form-group">
+									<center>				<div class="form-group">
 										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Meter Number </label>
 
 										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
+											<input type="text" id="txMeterNum" class="col-xs-10 col-sm-5" />
 										</div>
-									</div>
+									</div>                                                            
+                                         
+                                                                    
+                                                                    <div class="form-group">
+										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Usage (kWh) </label>
+
+										<div class="col-sm-9">
+											<input type="text" id="txReading" class="col-xs-10 col-sm-5" />
+										</div>
+									</div></center>
+									
+											<input type="hidden" id="txReadDate" value="2014-03-26" />
                                                                                             <center>        
                                                                                                     
-                                                                                                  <button class="btn btn-lg btn-success">
-												<i class="icon-ok"></i>
+                                     <a href="#" class="btn btn-app btn-success btn-xs" value="Submit" type="button" onClick="UpdateFromDB()">
+												<i class="icon-ok bigger-230"></i>
 												Submit
-											</button> 
-                                                                                                    </center>
+									</a>
+
+									<a href="accounts.html#list" class="btn btn-app btn-primary btn-xs" value="Refresh" type="button" onClick="ListDBValues()">
+												<i class="icon-refresh bigger-230"></i>
+												Reload
+											</a>	
+<br>
+<br>
+<span style="font-weight:bold;">Updated Account:</span>
+<p>UserID - Customer Name - Meter Number - Reading (KwH) - Reading Date</p>
+<span id="lbUsers"></span>
+</center>
                                                                                                     
 												</div>
 												
 												                                                
 
-												<div id="accounts" class="tab-pane">
+												<div id="search" class="tab-pane">								
+											
 													 <div class="form-group">
-										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Bill No. </label>
+										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> User ID </label>
 
 										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
+											<input type="text" id="txUserId" class="col-xs-10 col-sm-5" />
 										</div>
 									</div>
                                                                     
 									<div class="form-group">
-										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Account No. </label>
+										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> First Name </label>
 
 										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
+											<input type="text" id="txFirstName" class="col-xs-10 col-sm-5" />
 										</div>
 									</div>
                                                                     
                                                                     <div class="form-group">
-										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Account Name </label>
+										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Last Name </label>
 
 										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
+											<input type="text" id="txLastName" class="col-xs-10 col-sm-5" />
 										</div>
 									</div>
                                                                     
-                                                                    <div class="form-group">
-										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Billing Coverage </label>
-
-										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
-										</div>
-									</div>
-                                                                    
-                                                                    <div class="form-group">
-										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Billing Month </label>
-
-										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
-										</div>
-									</div>
-                                                                    
-                                                                    <div class="form-group">
-										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Meter Number </label>
-
-										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
-										</div>
-									</div>
-                                                                    
-                                                                    <div class="form-group">
-										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Service Type </label>
-
-										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
-										</div>
-									</div>
-                                                                    
-                                                                    <div class="form-group">
-										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> KWH Multiplier </label>
-
-										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
-										</div>
-									</div>
-                                                                    
-                                                                    <div class="form-group">
-										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Current Reading </label>
-
-										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
-										</div>
-									</div>
-                                                                    
-                                                                    <div class="form-group">
-										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Previous Reading </label>
-
-										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
-										</div>
-									</div>
-                                                                    
-                                                                    <div class="form-group">
-										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> KWH Used </label>
-
-										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
-										</div>
-									</div>
-                                                                    
-                                                                    <div class="form-group">
-										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Total Amount Due </label>
-
-										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
-										</div>
-									</div>
-                                                                    
-                                                                    <div class="form-group">
-										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Reading Date </label>
-
-										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
-										</div>
-									</div>
-                                                                    
-                                                                    <div class="form-group">
-										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Due Date </label>
-
-										<div class="col-sm-9">
-											<input type="text" id="form-field-1" class="col-xs-10 col-sm-5" />
-										</div>
-									</div>
+                                       
                                                                                                     
                                                                                                      <center>        
                                                                                                     
