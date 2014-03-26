@@ -128,13 +128,7 @@ alert("DEBUGGING: we are in the onBodyLoad() function");
   // note the UserId column is an auto incrementing column which is
 //useful if you want to pull back distinct rows
   // easily from the table.
-   tx.executeSql( 'CREATE TABLE IF NOT EXISTS User(UserId INTEGER NOT NULL PRIMARY KEY, MeterNum INTEGER NOT NULL, FirstName TEXT NOT NULL, LastName TEXT NOT NULL, Reading INTEGER NOT NULL, ReadDate DATE NOT NULL)',[],nullHandler,errorHandler);
-   tx.executeSql( 'INSERT INTO User(UserId, FirstName, LastName, MeterNum, Reading, ReadDate)VALUES(1,'Kendrick','Lamar',1000,0,'2014-03-25')',[],nullHandler,errorHandler);
-   tx.executeSql( 'INSERT INTO User(UserId, FirstName, LastName, MeterNum, Reading, ReadDate)VALUES(2,'Mikee','Villegas',1010,0,'2014-03-25')',[],nullHandler,errorHandler);
-   tx.executeSql( 'INSERT INTO User(UserId, FirstName, LastName, MeterNum, Reading, ReadDate)VALUES(3,'Justin','Samson',1020,0,'2014-03-25')',[],nullHandler,errorHandler);
-   tx.executeSql( 'INSERT INTO User(UserId, FirstName, LastName, MeterNum, Reading, ReadDate)VALUES(4,'Micah','Ramos',1604,0,'2014-03-25')',[],nullHandler,errorHandler);
-   tx.executeSql( 'INSERT INTO User(UserId, FirstName, LastName, MeterNum, Reading, ReadDate)VALUES(5,'Jho','Javeloza',1111,0,'2014-03-25')',[],nullHandler,errorHandler);},errorHandler,successCallBack);
-   
+   tx.executeSql( 'CREATE TABLE IF NOT EXISTS User(UserId INTEGER NOT NULL PRIMARY KEY, FirstName TEXT NOT NULL, LastName TEXT NOT NULL, MeterNum INTEGER NOT NULL, Reading INTEGER, ReadDate INTEGER, Price INTEGER)',[],nullHandler,errorHandler);},errorHandler,successCallBack);  
 }
  
 // list the values in the database to the screen using jquery to
@@ -170,6 +164,40 @@ function ListDBValues() {
  return;
  
 }
+
+// list the values in the database to the screen using jquery to
+//update the #lbUsers element
+function ListUpdated() {
+ 
+ if (!window.openDatabase) {
+  alert('Databases are not supported in this browser.');
+  return;
+ }
+ 
+// this line clears out any content in the #lbUsers element on the
+//page so that the next few lines will show updated
+// content and not just keep repeating lines
+ $('#UpdatedUser').html('');
+ 
+// this next section will select all the content from the User table
+//and then go through it row by row
+// appending the UserId  FirstName  LastName to the  #lbUsers element
+//on the page
+ db.transaction(function(transaction) {
+   transaction.executeSql('SELECT UserId, FirstName, LastName, MeterNum, (Price*Reading) AS Fee FROM User WHERE MeterNum=?;', [$('#txMeterNum').val()],
+     function(transaction, result) {
+      if (result != null && result.rows != null) {
+        for (var i = 0; i < result.rows.length; i++) {
+          var row = result.rows.item(i);
+          $('#UpdatedUser').append('<br>' + row.UserId + ' - ' +row.FirstName+ ' ' + row.LastName + ' - ' + row.MeterNum + '<br><b>Amount Due</b>: PHP' + row.Fee + '.00 <br>');
+        }
+      }
+     },errorHandler);
+ },errorHandler,nullHandler);
+ 
+ return;
+ 
+}
  
 // this is the function that puts values into the database using the
 //values from the text boxes on the screen
@@ -183,7 +211,7 @@ function AddValueToDB() {
 // this is the section that actually inserts the values into the User
 //table
  db.transaction(function(transaction) {
-   transaction.executeSql('INSERT INTO User(FirstName, LastName, MeterNum, Reading, ReadDate)VALUES(?,?,?,?,?)',[$('#txFirstName').val(), $('#txLastName').val(), $('#txMeterNum').val(), $('#txReading').val(), $('#txReadDate').val()],nullHandler,errorHandler);
+   transaction.executeSql('INSERT INTO User(FirstName, LastName, MeterNum, Price)VALUES(?,?,?,8)',[$('#addFirst').val(), $('#addLast').val(), $('#addMeter').val()],nullHandler,errorHandler);
    });
  
 // this calls the function that will show what is in the User table in
@@ -234,11 +262,17 @@ function UpdateFromDB() {
  
 // this calls the function that will show what is in the User table in
 //the database
- ListDBValues();
+ ListUpdated();
  
  return false;
  
 }
+
+$(document).ready( function() {
+    var now = new Date();
+    var today = now.getFullYear() + '-' +(now.getMonth() + 1) + '-' + now.getDate();
+    $('#txReadDate').val(today);
+});
 
  
 </script>
@@ -446,18 +480,24 @@ function UpdateFromDB() {
 														<i class="icon-book"></i>Search
 													</a>
 												</li>
+												
+												<li>
+													<a data-toggle="tab" href="#maintain">
+														<i class="icon-wrench"></i>Maintainance
+													</a>
+												</li>
 
 											</ul>
 
 											<div class="tab-content">
 											<div id="table" class="tab-pane in active">
 													<h1>Accounts</h1><br>
-													<a href="#" class="btn btn-app btn-success btn-xs" value="Refresh" type="button" onClick="ListDBValues()">
+													<a href="#" class="btn btn-app btn-primary btn-xs" value="Refresh" type="button" onClick="ListDBValues()">
 												<i class="icon-refresh bigger-230"></i>
 												Reload
 											</a><br><br>
 <span style="font-weight:bold;">Current Accounts:</span>
-<p>UserID - Customer Name - Meter Number - Reading (KwH) - Reading Date</p>
+<p>ID - Customer Name - Meter Number - Reading (KwH) - Reading Date</p>
 <span id="lbUsers"></span>
                                                                                                     
 												</div>
@@ -479,25 +519,25 @@ function UpdateFromDB() {
 										<div class="col-sm-9">
 											<input type="text" id="txReading" class="col-xs-10 col-sm-5" />
 										</div>
-									</div></center>
-									
-											<input type="hidden" id="txReadDate" value="2014-03-26" />
+									</div></center>							
+											
                                                                                             <center>        
-                                                                                                    
+                                     <input type="hidden" id="txReadDate"/>                                                              
                                      <a href="#" class="btn btn-app btn-success btn-xs" value="Submit" type="button" onClick="UpdateFromDB()">
 												<i class="icon-ok bigger-230"></i>
 												Submit
 									</a>
 
-									<a href="accounts.html#list" class="btn btn-app btn-primary btn-xs" value="Refresh" type="button" onClick="ListDBValues()">
+									<a href="accounts.html#list" class="btn btn-app btn-primary btn-xs" value="Refresh" type="button" onClick="ListUpdated()">
 												<i class="icon-refresh bigger-230"></i>
 												Reload
 											</a>	
 <br>
 <br>
 <span style="font-weight:bold;">Updated Account:</span>
-<p>UserID - Customer Name - Meter Number - Reading (KwH) - Reading Date</p>
-<span id="lbUsers"></span>
+<p>ID - Customer Name - Meter<br>Amount Due (PHP)</p>
+
+<span id="UpdatedUser"></span>
 </center>
                                                                                                     
 												</div>
@@ -538,6 +578,45 @@ function UpdateFromDB() {
 												<i class="icon-ok"></i>
 												Submit
 											</button> 
+                                                                                                    </center>
+                                                                                                    
+												</div>
+												
+												<div id="maintain" class="tab-pane">					
+																						 
+                                                                    
+									<div class="form-group">
+										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> First Name </label>
+
+										<div class="col-sm-9">
+											<input type="text" id="addFirst" class="col-xs-10 col-sm-5" />
+										</div>
+									</div>
+                                                                    
+                                                                    <div class="form-group">
+										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Last Name </label>
+
+										<div class="col-sm-9">
+											<input type="text" id="addLast" class="col-xs-10 col-sm-5" />
+										</div>
+									</div>
+									
+									<div class="form-group">
+										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Meter Number </label>
+
+										<div class="col-sm-9">
+											<input type="text" id="addMeter" class="col-xs-10 col-sm-5" />
+										</div>
+									</div>
+                                                                    
+                                       
+                                                                                                    
+                                                                                                     <center>        
+                                                                                                    
+                                    <a href="#" class="btn btn-app btn-success btn-xs" value="Submit" type="button" onClick="AddValueToDB()">
+												<i class="icon-ok bigger-230"></i>
+												Add
+									</a> 
                                                                                                     </center>
                                                                                                     
 												</div>
