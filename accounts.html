@@ -61,7 +61,7 @@
 
 		<script src="assets/js/ace-extra.min.js"></script>
 		<!-- include the next line to use phonegap javascript functions -->
-		<script type="text/javascript" charset="utf-8" src="assets/js/cordova.js"></script>
+		<!-- <script type="text/javascript" charset="utf-8" src="assets/js/cordova.js"></script> -->
 		<script type="text/javascript" charset="utf-8" src="assets/js/jquery-2.0.3.min.js">
 		</script>
 		
@@ -89,10 +89,10 @@ function errorHandler(transaction, error) {
 }
  
 // this is called when a successful transaction happens
-function successCallBack() {
-   alert("DEBUGGING: success");
- 
-}
+//function successCallBack() {
+//   alert("DEBUGGING: success");
+// 
+//}
  
 function nullHandler(){};
  
@@ -101,7 +101,7 @@ function onBodyLoad(){
  
 // This alert is used to make sure the application is loaded correctly
 // you can comment this out once you have the application working
-alert("DEBUGGING: we are in the onBodyLoad() function");
+//alert("DEBUGGING: we are in the onBodyLoad() function");
  
  if (!window.openDatabase) {
    // not all mobile devices support databases  if it does not, the
@@ -122,7 +122,7 @@ alert("DEBUGGING: we are in the onBodyLoad() function");
  
   // you can uncomment this next line if you want the User table to be
 //empty each time the application runs
- tx.executeSql( 'DROP TABLE User',nullHandler,nullHandler);
+// tx.executeSql( 'DROP TABLE User',nullHandler,nullHandler);
  
   // this line actually creates the table User if it does not exist
 //and sets up the three columns and their types
@@ -156,7 +156,7 @@ function ListDBValues() {
       if (result != null && result.rows != null) {
         for (var i = 0; i < result.rows.length; i++) {
           var row = result.rows.item(i);		  
-          $('#lbUsers').append('<br>' + row.UserId + ' - ' +row.FirstName+ ' ' + row.LastName + ' - ' + row.MeterNum + ' - ' + row.ServiceType + ' - ' + row.Reading + ' kWh - ' + row.ReadDate + ' - PHP' + row.Fee + '.00' );
+          $('#lbUsers').append('<br>' + row.UserId + ' <b>|</b> ' +row.FirstName+ ' ' + row.LastName + ' <b>|</b> ' + row.MeterNum + ' <b>|</b> ' + row.ServiceType + ' <b>|</b> ' + row.Reading + ' kWh <b>|</b> ' + row.ReadDate + ' <b>|</b> PHP' + row.Fee + '.00' );
         }
       }
      },errorHandler);
@@ -190,7 +190,7 @@ function ListUpdated() {
       if (result != null && result.rows != null) {
         for (var i = 0; i < result.rows.length; i++) {
           var row = result.rows.item(i);
-          $('#UpdatedUser').append('<br>' + row.UserId + ' - ' +row.FirstName+ ' ' + row.LastName + ' - ' + row.MeterNum + '<br><b>Amount Due</b>: PHP' + row.Fee + '.00 <br>');
+          $('#UpdatedUser').append('<br><b>Account Number:</b> ' + row.UserId + '<br><b>Customer Name:</b> ' +row.FirstName+ ' ' + row.LastName + '<br><b>Meter Number</b> ' + row.MeterNum + '<br><b>Amount Due</b>: PHP' + row.Fee + '.00 <br>');
         }
       }
      },errorHandler);
@@ -317,7 +317,7 @@ function PrintElem(elem)
 
         return true;
     }
- 
+	
 </script>
 	</head>
 
@@ -540,7 +540,7 @@ function PrintElem(elem)
 												Reload
 											</a><br><br>
 <span style="font-weight:bold;">Current Accounts:</span>
-<p>ID - Customer Name - Meter Number - Reading (KwH) - Reading Date</p>
+<p>ID <b>|</b> Customer <b>|</b> Meter # <b>|</b> Reading (KwH) <b>|</b> Reading Date</p>
 <span id="lbUsers"></span>
                                                                                                     
 												</div>
@@ -581,10 +581,10 @@ function PrintElem(elem)
 												Search
 											</a></center>
 <br><br>
-<div id="mydiv">
 <span style="font-weight:bold;">Updated Account:</span>
-<p>ID - Customer Name - Meter<br>Amount Due (PHP)</p>
-
+<div id="mydiv">
+<span style="font-weight:bold;">Receipt</span>
+<p>E-PAY Application</p>
 <span id="UpdatedUser"></span>
 </div>
                                                                                                     
