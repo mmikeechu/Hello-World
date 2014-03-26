@@ -129,11 +129,11 @@ alert("DEBUGGING: we are in the onBodyLoad() function");
 //useful if you want to pull back distinct rows
   // easily from the table.
    tx.executeSql( 'CREATE TABLE IF NOT EXISTS User(UserId INTEGER NOT NULL PRIMARY KEY, MeterNum INTEGER NOT NULL, FirstName TEXT NOT NULL, LastName TEXT NOT NULL, Reading INTEGER NOT NULL, ReadDate DATE NOT NULL)',[],nullHandler,errorHandler);
-   tx.executeSql( 'INSERT INTO User(FirstName, LastName, MeterNum, Reading, ReadDate)VALUES('Kendrick','Lamar',1000,0,'2014-03-25')',[],nullHandler,errorHandler);
-   tx.executeSql( 'INSERT INTO User(FirstName, LastName, MeterNum, Reading, ReadDate)VALUES('Mikee','Villegas',1010,0,'2014-03-25')',[],nullHandler,errorHandler);
-   tx.executeSql( 'INSERT INTO User(FirstName, LastName, MeterNum, Reading, ReadDate)VALUES('Justin','Samson',1020,0,'2014-03-25')',[],nullHandler,errorHandler);
-   tx.executeSql( 'INSERT INTO User(FirstName, LastName, MeterNum, Reading, ReadDate)VALUES('Micah','Ramos',1604,0,'2014-03-25')',[],nullHandler,errorHandler);
-   tx.executeSql( 'INSERT INTO User(FirstName, LastName, MeterNum, Reading, ReadDate)VALUES('Jho','Javeloza',1111,0,'2014-03-25')',[],nullHandler,errorHandler);},errorHandler,successCallBack);
+   tx.executeSql( 'INSERT INTO User(UserId, FirstName, LastName, MeterNum, Reading, ReadDate)VALUES(1,'Kendrick','Lamar',1000,0,'2014-03-25')',[],nullHandler,errorHandler);
+   tx.executeSql( 'INSERT INTO User(UserId, FirstName, LastName, MeterNum, Reading, ReadDate)VALUES(2,'Mikee','Villegas',1010,0,'2014-03-25')',[],nullHandler,errorHandler);
+   tx.executeSql( 'INSERT INTO User(UserId, FirstName, LastName, MeterNum, Reading, ReadDate)VALUES(3,'Justin','Samson',1020,0,'2014-03-25')',[],nullHandler,errorHandler);
+   tx.executeSql( 'INSERT INTO User(UserId, FirstName, LastName, MeterNum, Reading, ReadDate)VALUES(4,'Micah','Ramos',1604,0,'2014-03-25')',[],nullHandler,errorHandler);
+   tx.executeSql( 'INSERT INTO User(UserId, FirstName, LastName, MeterNum, Reading, ReadDate)VALUES(5,'Jho','Javeloza',1111,0,'2014-03-25')',[],nullHandler,errorHandler);},errorHandler,successCallBack);
    
 }
  
