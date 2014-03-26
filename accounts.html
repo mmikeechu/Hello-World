@@ -60,7 +60,7 @@
 
 		<script src="assets/js/ace-extra.min.js"></script>
 		<!-- include the next line to use phonegap javascript functions -->
-    <script type="text/javascript" charset="utf-8" src="assets/js/cordova.js"></script>
+		<script type="text/javascript" charset="utf-8" src="assets/js/cordova.js"></script>
 		<script type="text/javascript" charset="utf-8" src="assets/js/jquery-2.0.3.min.js">
 		</script>
 		
@@ -88,10 +88,10 @@ function errorHandler(transaction, error) {
 }
  
 // this is called when a successful transaction happens
-function successCallBack() {
-   alert("DEBUGGING: success");
- 
-}
+//function successCallBack() {
+//   alert("DEBUGGING: success");
+ //
+//}
  
 function nullHandler(){};
  
@@ -100,7 +100,7 @@ function onBodyLoad(){
  
 // This alert is used to make sure the application is loaded correctly
 // you can comment this out once you have the application working
-alert("DEBUGGING: we are in the onBodyLoad() function");
+//alert("DEBUGGING: we are in the onBodyLoad() function");
  
  if (!window.openDatabase) {
    // not all mobile devices support databases  if it does not, the
@@ -121,7 +121,7 @@ alert("DEBUGGING: we are in the onBodyLoad() function");
  
   // you can uncomment this next line if you want the User table to be
 //empty each time the application runs
- tx.executeSql( 'DROP TABLE User',nullHandler,nullHandler);
+// tx.executeSql( 'DROP TABLE User',nullHandler,nullHandler);
  
   // this line actually creates the table User if it does not exist
 //and sets up the three columns and their types
@@ -150,12 +150,12 @@ function ListDBValues() {
 // appending the UserId  FirstName  LastName to the  #lbUsers element
 //on the page
  db.transaction(function(transaction) {
-   transaction.executeSql('SELECT * FROM User;', [],
+   transaction.executeSql('SELECT *, (Price*Reading) AS Fee FROM User;', [],
      function(transaction, result) {
       if (result != null && result.rows != null) {
         for (var i = 0; i < result.rows.length; i++) {
           var row = result.rows.item(i);
-          $('#lbUsers').append('<br>' + row.UserId + ' - ' +row.FirstName+ ' ' + row.LastName + ' - ' + row.MeterNum + ' - ' + row.Reading + ' kWh - ' + row.ReadDate);
+          $('#lbUsers').append('<br>' + row.UserId + ' - ' +row.FirstName+ ' ' + row.LastName + ' - ' + row.MeterNum + ' - ' + row.Reading + ' kWh - ' + row.ReadDate + ' - PHP' + row.Fee + '.00' );
         }
       }
      },errorHandler);
@@ -211,7 +211,7 @@ function AddValueToDB() {
 // this is the section that actually inserts the values into the User
 //table
  db.transaction(function(transaction) {
-   transaction.executeSql('INSERT INTO User(FirstName, LastName, MeterNum, Price)VALUES(?,?,?,8)',[$('#addFirst').val(), $('#addLast').val(), $('#addMeter').val()],nullHandler,errorHandler);
+   transaction.executeSql('INSERT INTO User(FirstName, LastName, MeterNum)VALUES(?,?,?)',[$('#addFirst').val(), $('#addLast').val(), $('#addMeter').val()],nullHandler,errorHandler);
    });
  
 // this calls the function that will show what is in the User table in
@@ -258,6 +258,29 @@ function UpdateFromDB() {
 //table
  db.transaction(function(transaction) { 
    transaction.executeSql('UPDATE User SET Reading=?, ReadDate=? WHERE MeterNum=?',[$('#txReading').val(), $('#txReadDate').val(), $('#txMeterNum').val()],nullHandler,errorHandler);
+   });
+ 
+// this calls the function that will show what is in the User table in
+//the database
+ ListUpdated();
+ 
+ return false;
+ 
+}
+
+// this is the function that deletes values into the database using the
+//values from the text boxes on the screen
+function UpdatePrice() {
+ 
+ if (!window.openDatabase) {
+   alert('Databases are not supported in this browser.');
+   return;
+ }
+  
+// this is the section that actually inserts the values into the User
+//table
+ db.transaction(function(transaction) { 
+   transaction.executeSql('UPDATE User SET Price=? WHERE Price=Price',[$('#upPrice').val()],nullHandler,errorHandler);
    });
  
 // this calls the function that will show what is in the User table in
@@ -461,7 +484,7 @@ $(document).ready( function() {
                                                                                                     
                                                                                                     <a data-toggle="tab" href="#table">
 														<i class="icon-user"></i>
-														Account List
+														Accounts
 													</a>
 													
 												</li>
@@ -475,11 +498,11 @@ $(document).ready( function() {
 													</a>
                                                                                                     </li>
 
-												<li>
+												<!--<li>
 													<a data-toggle="tab" href="#search">
 														<i class="icon-book"></i>Search
 													</a>
-												</li>
+												</li>-->
 												
 												<li>
 													<a data-toggle="tab" href="#maintain">
@@ -507,33 +530,32 @@ $(document).ready( function() {
 									<center>				<div class="form-group">
 										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Meter Number </label>
 
-										<div class="col-sm-9">
-											<input type="text" id="txMeterNum" class="col-xs-10 col-sm-5" />
-										</div>
+										<center><div style="margin-left: 70px" class="col-sm-9">
+											<input type="number" id="txMeterNum" min=0 class="col-xs-10 col-sm-5" />
+										</div></center>
 									</div>                                                            
                                          
                                                                     
                                                                     <div class="form-group">
 										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Usage (kWh) </label>
 
-										<div class="col-sm-9">
-											<input type="text" id="txReading" class="col-xs-10 col-sm-5" />
+										<div style="margin-left: 70px" class="col-sm-9">
+											<center><input type="number" min=0 id="txReading" class="col-xs-10 col-sm-5" /></center>
 										</div>
 									</div></center>							
 											
                                                                                             <center>        
                                      <input type="hidden" id="txReadDate"/>                                                              
-                                     <a href="#" class="btn btn-app btn-success btn-xs" value="Submit" type="button" onClick="UpdateFromDB()">
+                                     <a href="#" class="btn btn-app btn-success btn-xs" value="Submit" type="button" onClick="return confirm('Are you sure you want to submit this meter reading?'), UpdateFromDB()">
 												<i class="icon-ok bigger-230"></i>
 												Submit
 									</a>
 
-									<a href="accounts.html#list" class="btn btn-app btn-primary btn-xs" value="Refresh" type="button" onClick="ListUpdated()">
-												<i class="icon-refresh bigger-230"></i>
-												Reload
+									<a href="#" class="btn btn-app btn-primary btn-xs" value="Refresh" type="button" onClick="ListUpdated()">
+												<i class="icon-search bigger-230"></i>
+												Search
 											</a>	
-<br>
-<br>
+<br><br>
 <span style="font-weight:bold;">Updated Account:</span>
 <p>ID - Customer Name - Meter<br>Amount Due (PHP)</p>
 
@@ -544,7 +566,7 @@ $(document).ready( function() {
 												
 												                                                
 
-												<div id="search" class="tab-pane">								
+												<!--<div id="search" class="tab-pane">								
 											
 													 <div class="form-group">
 										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> User ID </label>
@@ -580,11 +602,12 @@ $(document).ready( function() {
 											</button> 
                                                                                                     </center>
                                                                                                     
-												</div>
+												</div>-->
 												
 												<div id="maintain" class="tab-pane">					
-																						 
-                                                                    
+									<h2>Add Account</h2>													 
+                                    <table>
+										<tr>
 									<div class="form-group">
 										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> First Name </label>
 
@@ -605,18 +628,32 @@ $(document).ready( function() {
 										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Meter Number </label>
 
 										<div class="col-sm-9">
-											<input type="text" id="addMeter" class="col-xs-10 col-sm-5" />
+											<input type="number" min=0 id="addMeter" class="col-xs-10 col-sm-5" />
 										</div>
-									</div>
-                                                                    
-                                       
-                                                                                                    
-                                                                                                     <center>        
-                                                                                                    
-                                    <a href="#" class="btn btn-app btn-success btn-xs" value="Submit" type="button" onClick="AddValueToDB()">
+									</div></tr>
+									
+									<center><a href="#" style="margin-left: -80px" class="btn btn-app btn-success btn-xs" value="Submit" type="button" onClick="AddValueToDB()">
 												<i class="icon-ok bigger-230"></i>
 												Add
-									</a> 
+									</a> </center>
+									
+									<br><br>
+									<h2>Set Price</h2> 
+									<tr><div class="form-group">
+										<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Price </label>
+
+										<div class="col-sm-9">
+											<input type="number" min=0 id="upPrice" class="col-xs-10 col-sm-5" />
+										</div>
+									</div>
+									</tr>
+                                                                                                    
+                                                                                                     <center>        
+                                                      
+									<a href="#" style="margin-left: -80px" class="btn btn-app btn-primary btn-xs" value="Edit Price" type="button" onClick="UpdatePrice()">
+												<i class="icon-edit bigger-230"></i>
+												Set
+									</a>
                                                                                                     </center>
                                                                                                     
 												</div>
