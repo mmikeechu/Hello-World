@@ -19,6 +19,7 @@
 		<!-- page specific plugin styles -->
 
 		<link rel="stylesheet" href="assets/css/jquery-ui-1.10.3.custom.min.css" />
+		<script type="text/javascript" src="assets/js/jquery-1.3.1.min.js" > </script> 
 		<link rel="stylesheet" href="assets/css/jquery.gritter.css" />
 
 		<!-- fonts -->
@@ -88,10 +89,10 @@ function errorHandler(transaction, error) {
 }
  
 // this is called when a successful transaction happens
-//function successCallBack() {
-//   alert("DEBUGGING: success");
- //
-//}
+function successCallBack() {
+   alert("DEBUGGING: success");
+ 
+}
  
 function nullHandler(){};
  
@@ -100,7 +101,7 @@ function onBodyLoad(){
  
 // This alert is used to make sure the application is loaded correctly
 // you can comment this out once you have the application working
-//alert("DEBUGGING: we are in the onBodyLoad() function");
+alert("DEBUGGING: we are in the onBodyLoad() function");
  
  if (!window.openDatabase) {
    // not all mobile devices support databases  if it does not, the
@@ -121,14 +122,14 @@ function onBodyLoad(){
  
   // you can uncomment this next line if you want the User table to be
 //empty each time the application runs
-// tx.executeSql( 'DROP TABLE User',nullHandler,nullHandler);
+ tx.executeSql( 'DROP TABLE User',nullHandler,nullHandler);
  
   // this line actually creates the table User if it does not exist
 //and sets up the three columns and their types
   // note the UserId column is an auto incrementing column which is
 //useful if you want to pull back distinct rows
   // easily from the table.
-   tx.executeSql( 'CREATE TABLE IF NOT EXISTS User(UserId INTEGER NOT NULL PRIMARY KEY, FirstName TEXT NOT NULL, LastName TEXT NOT NULL, MeterNum INTEGER NOT NULL, Reading INTEGER, ReadDate INTEGER, Price INTEGER)',[],nullHandler,errorHandler);},errorHandler,successCallBack);  
+   tx.executeSql( 'CREATE TABLE IF NOT EXISTS User(UserId INTEGER NOT NULL PRIMARY KEY, FirstName TEXT NOT NULL, LastName TEXT NOT NULL, MeterNum INTEGER NOT NULL, Reading INTEGER, ReadDate INTEGER, ServiceType TEXT, Price INTEGER)',[],nullHandler,errorHandler);},errorHandler,successCallBack);  
 }
  
 // list the values in the database to the screen using jquery to
@@ -154,8 +155,8 @@ function ListDBValues() {
      function(transaction, result) {
       if (result != null && result.rows != null) {
         for (var i = 0; i < result.rows.length; i++) {
-          var row = result.rows.item(i);
-          $('#lbUsers').append('<br>' + row.UserId + ' - ' +row.FirstName+ ' ' + row.LastName + ' - ' + row.MeterNum + ' - ' + row.Reading + ' kWh - ' + row.ReadDate + ' - PHP' + row.Fee + '.00' );
+          var row = result.rows.item(i);		  
+          $('#lbUsers').append('<br>' + row.UserId + ' - ' +row.FirstName+ ' ' + row.LastName + ' - ' + row.MeterNum + ' - ' + row.ServiceType + ' - ' + row.Reading + ' kWh - ' + row.ReadDate + ' - PHP' + row.Fee + '.00' );
         }
       }
      },errorHandler);
@@ -211,7 +212,7 @@ function AddValueToDB() {
 // this is the section that actually inserts the values into the User
 //table
  db.transaction(function(transaction) {
-   transaction.executeSql('INSERT INTO User(FirstName, LastName, MeterNum)VALUES(?,?,?)',[$('#addFirst').val(), $('#addLast').val(), $('#addMeter').val()],nullHandler,errorHandler);
+   transaction.executeSql('INSERT INTO User(FirstName, LastName, MeterNum, ServiceType)VALUES(?,?,?,?)',[$('#addFirst').val(), $('#addLast').val(), $('#addMeter').val(), $('#addType').val()],nullHandler,errorHandler);
    });
  
 // this calls the function that will show what is in the User table in
@@ -280,7 +281,7 @@ function UpdatePrice() {
 // this is the section that actually inserts the values into the User
 //table
  db.transaction(function(transaction) { 
-   transaction.executeSql('UPDATE User SET Price=? WHERE Price=Price',[$('#upPrice').val()],nullHandler,errorHandler);
+   transaction.executeSql('UPDATE User SET Price=? WHERE ServiceType=?',[$('#upPrice').val(), $('#upType').val()],nullHandler,errorHandler);
    });
  
 // this calls the function that will show what is in the User table in
@@ -297,6 +298,25 @@ $(document).ready( function() {
     $('#txReadDate').val(today);
 });
 
+function PrintElem(elem)
+    {
+        Popup($(elem).html());
+    }
+
+    function Popup(data) 
+    {
+        var mywindow = window.open('', 'my div', 'height=400,width=600');
+        mywindow.document.write('<html><head><title>my div</title>');
+        /*optional stylesheet*/ //mywindow.document.write('<link rel="stylesheet" href="main.css" type="text/css" />');
+        mywindow.document.write('</head><body >');
+        mywindow.document.write(data);
+        mywindow.document.write('</body></html>');
+
+        mywindow.print();
+        mywindow.close();
+
+        return true;
+    }
  
 </script>
 	</head>
@@ -544,23 +564,29 @@ $(document).ready( function() {
 										</div>
 									</div></center>							
 											
-                                                                                            <center>        
+                                                                                                  
                                      <input type="hidden" id="txReadDate"/>                                                              
-                                     <a href="#" class="btn btn-app btn-success btn-xs" value="Submit" type="button" onClick="return confirm('Are you sure you want to submit this meter reading?'), UpdateFromDB()">
+                                     <center><a href="#" class="btn btn-app btn-success btn-xs" value="Submit" type="button" onClick="return confirm('Are you sure you want to submit this meter reading?'), UpdateFromDB()">
 												<i class="icon-ok bigger-230"></i>
 												Submit
 									</a>
+									
+									<a href="#" class="btn btn-app btn-warning btn-xs" value="Print Div" type="button" onClick="return confirm('Are you sure you want to print this meter reading?'), PrintElem('#mydiv')">
+												<i class="icon-print bigger-230"></i>
+												Print
+									</a>	
 
 									<a href="#" class="btn btn-app btn-primary btn-xs" value="Refresh" type="button" onClick="ListUpdated()">
 												<i class="icon-search bigger-230"></i>
 												Search
-											</a>	
+											</a></center>
 <br><br>
+<div id="mydiv">
 <span style="font-weight:bold;">Updated Account:</span>
 <p>ID - Customer Name - Meter<br>Amount Due (PHP)</p>
 
 <span id="UpdatedUser"></span>
-</center>
+</div>
                                                                                                     
 												</div>
 												
@@ -630,7 +656,17 @@ $(document).ready( function() {
 										<div class="col-sm-9">
 											<input type="number" min=0 id="addMeter" class="col-xs-10 col-sm-5" />
 										</div>
-									</div></tr>
+									</div>								
+																		
+									<div class="form-group">
+									<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Service Type </label>
+															<select class="col-sm-4" id="addType">
+																<option value="">&nbsp;</option>
+																<option value="Residential">Residential</option>
+																<option value="Business">Business</option>																
+															</select>
+														</div>
+									</tr>
 									
 									<center><a href="#" style="margin-left: -80px" class="btn btn-app btn-success btn-xs" value="Submit" type="button" onClick="AddValueToDB()">
 												<i class="icon-ok bigger-230"></i>
@@ -646,6 +682,15 @@ $(document).ready( function() {
 											<input type="number" min=0 id="upPrice" class="col-xs-10 col-sm-5" />
 										</div>
 									</div>
+									
+									<div class="form-group">
+									<label class="col-sm-3 control-label no-padding-right" for="form-field-1"> Service Type </label>
+															<select class="col-sm-4" id="upType">
+																<option value="">&nbsp;</option>
+																<option value="Residential">Residential</option>
+																<option value="Business">Business</option>																
+															</select>
+														</div>
 									</tr>
                                                                                                     
                                                                                                      <center>        
