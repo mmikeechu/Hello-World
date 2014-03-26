@@ -121,7 +121,7 @@ alert("DEBUGGING: we are in the onBodyLoad() function");
  
   // you can uncomment this next line if you want the User table to be
 //empty each time the application runs
- //tx.executeSql( 'DROP TABLE User',nullHandler,nullHandler);
+ tx.executeSql( 'DROP TABLE User',nullHandler,nullHandler);
  
   // this line actually creates the table User if it does not exist
 //and sets up the three columns and their types
